@@ -99,17 +99,20 @@ pip install --no-cache-dir -r requirements.txt
 
 # Install spacy model with error handling
 echo "Installing spacy model..."
-MODEL_VERSION="3.7.1"
-DIRECT_DOWNLOAD="https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-${MODEL_VERSION}/en_core_web_lg-${MODEL_VERSION}.tar.gz"
 
-# Try multiple installation methods
-(python -m spacy download en_core_web_lg && echo "Successfully installed spacy model via download command") || \
-(pip install --no-cache-dir en-core-web-lg==${MODEL_VERSION} && echo "Successfully installed spacy model via pip") || \
-(pip install --no-cache-dir "${DIRECT_DOWNLOAD}" && echo "Successfully installed spacy model via direct download") || \
-{
-    echo "Failed to install large model, falling back to medium model..."
-    python -m spacy download en_core_web_md || pip install --no-cache-dir en-core-web-md
-}
+# First attempt: try downloading medium model (faster and more reliable)
+echo "Attempting to install medium model first..."
+python -m spacy download en_core_web_md || pip install --no-cache-dir en_core_web_md
+
+# Configure spaCy to use the medium model
+echo "from spacy.cli.download import download
+download('en_core_web_md')" > download_model.py
+python download_model.py
+
+echo "import spacy
+nlp = spacy.load('en_core_web_md')
+print('Loaded model:', nlp.meta['name'])" > verify_model.py
+python verify_model.py
 
 # Verify spacy and model installation
 echo "Verifying spacy installation..."
