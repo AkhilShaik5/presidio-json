@@ -7,15 +7,8 @@ import spacy
 
 app = Flask(__name__)
 
-# Try to load spacy model, falling back to medium if large is not available
-try:
-    spacy.load('en_core_web_lg')
-    model = 'en_core_web_lg'
-except:
-    model = 'en_core_web_md'
-
-# Initialize the Presidio engines with the available model
-analyzer = AnalyzerEngine(nlp=spacy.load(model))
+# Initialize the Presidio engines
+analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 
 def analyze_and_mask_text(text: str) -> Dict:

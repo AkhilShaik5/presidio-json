@@ -2,29 +2,14 @@
 set -e # Exit on error
 echo "Starting startup script..."
 
-# Create log directory if it doesn't exist
-mkdir -p /home/LogFiles
-
-# Enable logging
-export WEBSITE_ENABLE_APP_SERVICE_STORAGE=true
-
-# Set environment variables for better container performance
+# Set environment variables
 export PYTHONUNBUFFERED=1
-export PORT=${PORT:-8000}
-export WORKERS=${WORKERS:-2}
-export TIMEOUT=${TIMEOUT:-600}
+export PORT=8000
+export WORKERS=2
 
-# Handle Azure App Service directory structure
-if [ -d "/home/site/repository" ]; then
-    echo "Found repository at /home/site/repository"
-    SITE_DIR="/home/site/repository"
-elif [ -d "/home/site/wwwroot" ]; then
-    echo "Found application at /home/site/wwwroot"
-    SITE_DIR="/home/site/wwwroot"
-else
-    echo "Error: Could not find application directory"
-    exit 1
-fi
+# Set the site directory
+SITE_DIR="/home/site/wwwroot"
+cd $SITE_DIR || exit 1
 
 # Set working directory
 echo "Changing to directory: $SITE_DIR"
@@ -97,45 +82,15 @@ python -c "import numpy; print('Numpy version:', numpy.__version__)" || {
 echo "Installing other dependencies..."
 pip install --no-cache-dir -r requirements.txt
 
-# Install spacy model with error handling
-echo "Installing spacy model..."
-
-# First attempt: try downloading medium model (faster and more reliable)
-echo "Attempting to install medium model first..."
-python -m spacy download en_core_web_md || pip install --no-cache-dir en_core_web_md
-
-# Configure spaCy to use the medium model
-echo "from spacy.cli.download import download
-download('en_core_web_md')" > download_model.py
-python download_model.py
-
-echo "import spacy
-nlp = spacy.load('en_core_web_md')
-print('Loaded model:', nlp.meta['name'])" > verify_model.py
-python verify_model.py
-
-# Verify spacy and model installation
-echo "Verifying spacy installation..."
-python -c "import spacy; nlp = spacy.load('en_core_web_lg' if spacy.util.is_package('en_core_web_lg') else 'en_core_web_md'); print('Loaded model:', nlp.meta['name'])" || {
-    echo "Failed to load spacy model, trying to repair installation..."
-    pip uninstall -y spacy
-    pip install --no-cache-dir spacy==${SPACY_VERSION}
-    python -m spacy download en_core_web_lg
-}
+# Install spacy and its model
+echo "Installing spacy and model..."
+python -m pip install --no-cache-dir spacy==3.7.5
+python -m spacy download en_core_web_md
 
 # Create templates directory if it doesn't exist
 mkdir -p templates
 
-# Start Gunicorn with proper configuration
-echo "Starting Gunicorn server..."
-exec gunicorn \
-    --bind=0.0.0.0:$PORT \
-    --workers=$WORKERS \
-    --timeout=$TIMEOUT \
-    --access-logfile=/home/LogFiles/access.log \
-    --error-logfile=/home/LogFiles/error.log \
-    --capture-output \
-    --log-level=debug \
-    --preload \
-    --chdir "$SITE_DIR" \
-    app:app
+# Start the application
+echo "Starting application..."
+pip install -r requirements.txt
+exec gunicorn --bind=0.0.0.0:$PORT --workers=$WORKERS app:app
