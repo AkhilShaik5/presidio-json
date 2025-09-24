@@ -80,7 +80,7 @@ python -c "import numpy; print('Numpy version:', numpy.__version__)" || {
 
 # Install other dependencies
 echo "Installing other dependencies..."
-pip install --no-cache-dir -r requirements.txt
+pip install -r requirements.txt
 
 # Install spacy and its model
 echo "Installing spacy and model..."
