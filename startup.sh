@@ -90,7 +90,11 @@ python -m spacy download en_core_web_md
 # Create templates directory if it doesn't exist
 mkdir -p templates
 
+# Install dependencies
+echo "Installing dependencies..."
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir -r requirements.txt
+
 # Start the application
 echo "Starting application..."
-pip install -r requirements.txt
 exec gunicorn --bind=0.0.0.0:$PORT --workers=$WORKERS app:app
