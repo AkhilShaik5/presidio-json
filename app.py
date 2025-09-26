@@ -1,23 +1,13 @@
 from flask import Flask, request, render_template, jsonify
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
-from presidio_analyzer.nlp_engine import NlpEngineProvider
 from typing import Dict, List
 import os
-import spacy
 
 app = Flask(__name__)
 
-# Configure NLP engine with medium model
-configuration = {
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "en", "model_name": "en_core_web_md"}]
-}
-provider = NlpEngineProvider(nlp_configuration=configuration)
-nlp_engine = provider.create_engine()
-
-# Initialize the Presidio engines with the configured NLP engine
-analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+# Initialize the Presidio engines
+analyzer = AnalyzerEngine()  # Will use default spaCy model
 anonymizer = AnonymizerEngine()
 
 def analyze_and_mask_text(text: str) -> Dict:
