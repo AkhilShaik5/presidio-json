@@ -6,10 +6,14 @@ echo "Starting startup script..."
 export PYTHONUNBUFFERED=1
 export PORT=8000
 export WORKERS=2
+export SPACY_MODEL=en_core_web_md
 
 # Set the site directory
 SITE_DIR="/home/site/wwwroot"
 cd $SITE_DIR || exit 1
+
+# Create directories
+mkdir -p /home/LogFiles
 
 # Set working directory
 echo "Changing to directory: $SITE_DIR"
@@ -87,32 +91,36 @@ python -m spacy download en_core_web_md
 # Create templates directory if it doesn't exist
 mkdir -p templates
 
-# Install dependencies individually
-echo "Installing dependencies..."
-python -m pip install --upgrade pip setuptools wheel
+# Install dependencies in correct order
+echo "Installing core packages..."
+python -m pip install --no-cache-dir pip setuptools wheel --upgrade
 
-echo "Installing base packages..."
-pip install --no-cache-dir flask==2.0.1
-pip install --no-cache-dir werkzeug==2.0.3
-pip install --no-cache-dir python-dotenv==0.19.0
-pip install --no-cache-dir gunicorn==20.1.0
+echo "Installing numpy first..."
+python -m pip install --no-cache-dir numpy==1.23.5
 
-echo "Installing numpy and related packages..."
-pip install --no-cache-dir numpy==1.23.5
-pip install --no-cache-dir packaging==23.1
-
-echo "Installing presidio packages..."
-pip install --no-cache-dir pydantic==1.10.12
-pip install --no-cache-dir presidio-analyzer==2.2.32
-pip install --no-cache-dir presidio-anonymizer==2.2.32
-
-echo "Installing spaCy and related packages..."
-pip install --no-cache-dir requests==2.31.0
-pip install --no-cache-dir thinc==8.2.5
-pip install --no-cache-dir spacy==3.7.5
-
-echo "Downloading spaCy model..."
+echo "Installing spaCy and downloading model..."
+python -m pip install --no-cache-dir spacy==3.7.5
 python -m spacy download en_core_web_md
+
+echo "Installing other dependencies..."
+python -m pip install --no-cache-dir \
+    flask==2.0.1 \
+    werkzeug==2.0.3 \
+    python-dotenv==0.19.0 \
+    gunicorn==20.1.0 \
+    packaging==23.1 \
+    pydantic==1.10.12 \
+    requests==2.31.0 \
+    thinc==8.2.5
+
+echo "Installing Presidio packages..."
+python -m pip install --no-cache-dir \
+    presidio-analyzer==2.2.32 \
+    presidio-anonymizer==2.2.32
+
+# Verify spaCy model installation
+echo "Verifying spaCy model..."
+python -c "import spacy; nlp = spacy.load('en_core_web_md'); print('Successfully loaded:', nlp.meta['name'])"
 
 # Start the application
 echo "Starting application..."
