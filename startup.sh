@@ -90,10 +90,32 @@ python -m spacy download en_core_web_md
 # Create templates directory if it doesn't exist
 mkdir -p templates
 
-# Install dependencies
+# Install dependencies individually
 echo "Installing dependencies..."
-python -m pip install --upgrade pip
-python -m pip install --no-cache-dir -r requirements.txt
+python -m pip install --upgrade pip setuptools wheel
+
+echo "Installing base packages..."
+pip install --no-cache-dir flask==2.0.1
+pip install --no-cache-dir werkzeug==2.0.3
+pip install --no-cache-dir python-dotenv==0.19.0
+pip install --no-cache-dir gunicorn==20.1.0
+
+echo "Installing numpy and related packages..."
+pip install --no-cache-dir numpy==1.23.5
+pip install --no-cache-dir packaging==23.1
+
+echo "Installing presidio packages..."
+pip install --no-cache-dir pydantic==1.10.12
+pip install --no-cache-dir presidio-analyzer==2.2.32
+pip install --no-cache-dir presidio-anonymizer==2.2.32
+
+echo "Installing spaCy and related packages..."
+pip install --no-cache-dir requests==2.31.0
+pip install --no-cache-dir thinc==8.2.5
+pip install --no-cache-dir spacy==3.7.5
+
+echo "Downloading spaCy model..."
+python -m spacy download en_core_web_md
 
 # Start the application
 echo "Starting application..."
