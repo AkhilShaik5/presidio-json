@@ -45,10 +45,9 @@ def home():
 @app.route('/mask', methods=['POST'])
 def mask_text():
     if request.method == 'POST':
-        data = request.json
-        if not data or 'text' not in data:
+        text = request.form.get('text', '')
+        if not text:
             return jsonify({'error': 'No text provided'}), 400
-        text = data['text']
         
         try:
             result = analyze_and_mask_text(text)
@@ -57,4 +56,4 @@ def mask_text():
             return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(debug=True)
